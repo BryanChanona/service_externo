@@ -1,9 +1,13 @@
 package main
 
 import (
+	"consumer/models"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"net/http"
+	"bytes"
 
 	"github.com/joho/godotenv"
 	"github.com/rabbitmq/amqp091-go"
@@ -100,9 +104,29 @@ func main() {
 	// Procesar mensajes en un goroutine
 	go func() {
 		for msg := range msgs {
-			log.Printf(" Mensaje recibido: %s\n", msg.Body)
+			var book models.Book
+			err := json.Unmarshal(msg.Body, &book)
+			if err != nil {
+				log.Println("Error decoding JSON:", err)
+				continue
+			}
+
+			// Enviar a API Loans
+			sendToAPILoans(book)
 		}
 	}()
 
 	<-forever // Mantiene el consumidor en ejecución
+}
+
+func sendToAPILoans(book models.Book) {
+	jsonData, _ := json.Marshal(book)
+	resp, err := http.Post("http://localhost:8081/books", "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Println("Error sending to API Loans:", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	log.Println("Sent to API Loans:", resp.Status)
 }
