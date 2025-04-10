@@ -121,7 +121,7 @@ func main() {
 
 func sendToAPILoans(book models.Book) {
 	jsonData, _ := json.Marshal(book)
-	resp, err := http.Post("http://localhost:8081/books", "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post("http://98.82.143.49:8081/books", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		log.Println("Error sending to API Loans:", err)
 		return
